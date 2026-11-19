@@ -27,14 +27,17 @@ export class EspeakEngine {
    * @param {object} [deps]
    * @param {typeof defaultSpawn} [deps.spawn] - Injectable for tests.
    * @param {string} [deps.command] - The program.
-   * @param {number} [deps.timeoutMs] - Time budget of one text.
+   * @param {number} [deps.timeoutMs] - Time budget of one text, queue included.
+   * @param {() => number} [deps.now] - Clock in ms, injectable for tests.
    */
   constructor({
     spawn = defaultSpawn,
     command = 'espeak-ng',
     timeoutMs = SYNTHESIS_TIMEOUT_MS,
+    now = () => Date.now(),
   } = {}) {
     this.spawn = spawn;
+    this.now = now;
     this.command = command;
     this.timeoutMs = timeoutMs;
     // One process at a time: steady CPU and memory in the 256 MB sandbox.
@@ -50,7 +53,10 @@ export class EspeakEngine {
    * await engine.synthesize({ text: 'Bonjour', voice: 'fr-fr+f2', speed: 160, pitch: 50 });
    */
   synthesize(request) {
-    const run = this.queue.then(() => this.run(request));
+    // The budget runs from the request, not from the start of its process: a
+    // request that waited in the queue gets what is left, Gladys gives up at 30 s.
+    const deadline = this.now() + this.timeoutMs;
+    const run = this.queue.then(() => this.run(request, deadline));
     this.queue = run.catch(() => {});
     return run;
   }
@@ -58,9 +64,14 @@ export class EspeakEngine {
   /**
    * One process.
    * @param {{text: string, voice: string, speed: number, pitch: number}} request - What to say, how.
+   * @param {number} deadline - Clock time after which the clip is useless.
    * @returns {Promise<Buffer>} The WAV output.
    */
-  run({ text, voice, speed, pitch }) {
+  run({ text, voice, speed, pitch }, deadline) {
+    const remaining = deadline - this.now();
+    if (remaining < Math.min(1000, this.timeoutMs / 2)) {
+      return Promise.reject(new EspeakError('timeout', 'no time left after waiting in the queue'));
+    }
     const args = ['-b', '1', '-v', voice, '-s', String(speed), '-p', String(pitch), '--stdout'];
     return new Promise((resolve, reject) => {
       let child;
@@ -89,7 +100,7 @@ export class EspeakEngine {
       };
       const timer = setTimeout(
         () => finish(new EspeakError('timeout', `no clip after ${this.timeoutMs} ms`)),
-        this.timeoutMs,
+        remaining,
       );
       child.on('error', (err) => {
         const kind = err.code === 'ENOENT' ? 'missing' : 'failed';

@@ -145,6 +145,8 @@ export class EspeakTts {
     // Synthesis key -> pending synthesis, shared by identical requests.
     this.inFlight = new Map();
     this.status = null;
+    // Kind of the last failed synthesis: a repeated failure is logged once.
+    this.lastFailure = null;
   }
 
   /**
@@ -225,14 +227,28 @@ export class EspeakTts {
     try {
       await this.load();
       const clip = await this.speak(typeof text === 'string' ? text : '', language);
+      if (this.lastFailure) {
+        this.logger.info('Speech synthesized again');
+        this.lastFailure = null;
+      }
       if (this.status?.connected === false) {
         await this.reportStatus(true, readyMessage(this.settings));
       }
       return `audio/wav;base64,${clip.audio.toString('base64')}`;
     } catch (err) {
       // The failed ack only reaches the Gladys server log: say it here too,
-      // in the integration logs the administrator can open from Gladys.
-      this.logger.warn(`Speech not synthesized: ${err.message}`);
+      // in the integration logs the administrator can open from Gladys, once
+      // per kind of failure. A text with nothing to say is not a failure of
+      // the integration (an AI answer made of emojis).
+      const kind = err?.kind ?? 'failed';
+      if (kind === 'empty') {
+        this.logger.debug(`Speech not synthesized: ${err.message}`);
+      } else if (kind !== this.lastFailure) {
+        this.lastFailure = kind;
+        this.logger.warn(`Speech not synthesized: ${err.message}`);
+      } else {
+        this.logger.debug(`Speech not synthesized again: ${err.message}`);
+      }
       if (err?.kind === 'missing') {
         await this.reportStatus(false, MESSAGES.missing, err);
       }
@@ -333,6 +349,7 @@ export class EspeakTts {
       return;
     }
     const wasConnected = this.status?.connected;
+    const previous = this.status;
     this.status = { connected, message };
     if (connected && wasConnected === false) {
       this.logger.info('eSpeak NG speaks again');
@@ -344,6 +361,10 @@ export class EspeakTts {
     try {
       await this.gladys.setConnectionStatus(connected, message);
     } catch (statusErr) {
+      // Not shown: the next report of the same status must try again.
+      if (this.status?.message === message) {
+        this.status = previous;
+      }
       this.logger.warn(`Unable to publish the status: ${statusErr.message}`);
     }
   }

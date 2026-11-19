@@ -186,3 +186,45 @@ test('a request arriving before the configuration is read waits for it', async (
   assert.match(clip, /^audio\/wav;base64,/);
   assert.equal(engine.calls[0].voice, 'it');
 });
+
+test('a repeated failure is logged once, an empty text not at all', async () => {
+  let failing = false;
+  const { gladys, lines } = await setup({
+    answer: () => {
+      if (failing) {
+        throw new EspeakError('failed', 'espeak-ng: exit 1');
+      }
+      return BONJOUR;
+    },
+  });
+  await gladys.fake.ttsSynthesize('  ', 'fr');
+  assert.equal(lines.warn.length, 0);
+  failing = true;
+  await gladys.fake.ttsSynthesize('Un.', 'fr');
+  await gladys.fake.ttsSynthesize('Deux.', 'fr');
+  assert.equal(lines.warn.length, 1);
+  failing = false;
+  await gladys.fake.ttsSynthesize('Trois.', 'fr');
+  assert.ok(lines.info.includes('Speech synthesized again'));
+});
+
+test('a status Gladys did not take is published again next time', async () => {
+  const gladys = createFakeGladys();
+  const { logger } = recordingLogger();
+  const tts = new EspeakTts(gladys, { engine: fakeEngine(), logger });
+  const setConnectionStatus = gladys.setConnectionStatus.bind(gladys);
+  let refuse = true;
+  let attempts = 0;
+  gladys.setConnectionStatus = async (...args) => {
+    attempts += 1;
+    if (refuse) {
+      throw new Error('HTTP 503');
+    }
+    return setConnectionStatus(...args);
+  };
+  await tts.applyConfig({});
+  refuse = false;
+  await tts.check();
+  assert.equal(attempts, 2);
+  assert.equal(gladys.fake.connectionStatus.connected, true);
+});

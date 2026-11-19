@@ -122,3 +122,19 @@ test('the real eSpeak NG speaks the four languages', { skip: !hasEspeak }, async
     kind: 'failed',
   });
 });
+
+test('the time budget counts the wait in the queue', async () => {
+  let clock = 0;
+  const { spawn, calls } = fakeSpawn((child) => {
+    clock += 24_500;
+    setImmediate(() => child.emit('close', 0, null));
+  });
+  const engine = new EspeakEngine({ spawn, now: () => clock });
+  const [first, second] = await Promise.allSettled([
+    engine.synthesize(request),
+    engine.synthesize(request),
+  ]);
+  assert.equal(first.status, 'fulfilled');
+  assert.equal(second.reason.kind, 'timeout');
+  assert.equal(calls.length, 1);
+});
