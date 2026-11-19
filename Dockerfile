@@ -11,7 +11,9 @@
 FROM mirror.gcr.io/library/node:24-alpine
 
 # dumb-init: handles signals (SIGTERM) correctly for a graceful shutdown.
-RUN apk add --no-cache dumb-init
+# espeak-ng: the speech engine itself, with its voices (Alpine community
+# package, ~18 MB): the integration exists to run it offline, in this image.
+RUN apk add --no-cache dumb-init espeak-ng
 
 WORKDIR /app
 

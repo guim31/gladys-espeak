@@ -16,8 +16,8 @@ its only runtime dependency. It started from the official JavaScript template.
 ```bash
 npm install
 npm test                                  # node --test, the built-in runner
-node --test test/devices.test.js          # one file
-node --test --test-name-pattern "plug"    # tests whose name matches
+node --test test/wav.test.js              # one file
+node --test --test-name-pattern "voice"   # tests whose name matches
 npm run lint                              # ESLint
 npm run format:check                      # Prettier, as the CI runs it
 npm run format                            # Prettier, fix in place
@@ -31,16 +31,17 @@ pushing.
 ## Architecture
 
 ```
-index.js                          SDK wiring only: handlers registered before connect()
-src/devices/index.js              registry of the device blueprints + dispatch helpers
-src/devices/<type>.js             one device type per file (buildDevice, onPoll, onSetValue...)
-src/scenes.js                     scene action handlers (manifest `scene_actions`)
-src/widgets.js                    dashboard widget handlers (manifest `widgets`)
-src/config.js                     DEFAULT_CONFIG (mirrors the manifest defaults) + normalization
-src/weather.js                    example driver (Open-Meteo)
-gladys-assistant-integration.json manifest: name, config_schema, actions, image...
-docs/en.md, docs/fr.md            user documentation, re-hosted by Gladys (mandatory)
-test/                             node --test, against the SDK's fake Gladys (integration-sdk/testing)
+index.js                          SDK wiring only: src/app.js registers the handlers before connect()
+src/app.js                        every SDK handler -> EspeakTts (also used by the tests)
+src/integration.js                EspeakTts: settings, synthesis, status, test button, messages
+src/espeak.js                     EspeakEngine: runs espeak-ng (text on stdin), one at a time, 25 s
+src/wav.js                        WAV parse (placeholder sizes), encode, resample, 8-bit, silence
+src/config.js                     DEFAULT_CONFIG (mirrors the manifest defaults), voices, variants
+src/lifecycle.js                  exit on an unhandled rejection
+gladys-assistant-integration.json manifest: type "tts", config_schema, the test_voice action
+docs/{en,fr,de,es}.md             user documentation, re-hosted by Gladys (same sections)
+test/                             node --test, against the SDK's fake Gladys and a fake engine;
+                                  test/fixtures/*.wav are real outputs of espeak-ng 1.52.0
 .github/scripts/release.mjs       release helpers (manifest bump, changelog), tested in test/
 ```
 
@@ -259,3 +260,20 @@ long, et sur un « Sie »/« Ihr… » de politesse en allemand. Le store exige 
 - Docs `en`, `fr`, `de`, `es` avec les mêmes sections.
 - Chauffe, ouverture, sécurité : ne rien rendre pilotable « comme un thermostat » ou par un assistant
   vocal quand une erreur serait dangereuse (leçon d'OctoPrint).
+
+## eSpeak NG (vérifié le 19/11/2026 dans l'image)
+
+- Paquet Alpine `espeak-ng` 1.52.0 (communauté, ~18 Mo installés, dépend de `libpcaudio`) ; image finale 195 Mo
+  contre 172 Mo pour `node:24-alpine`. Pico TTS (`libttspico`) n'existe pas pour Alpine : suite possible seulement
+  avec une image Debian.
+- `espeak-ng --stdout` dans un tube écrit un en-tête RIFF aux tailles bidon (`0x7ffff024`, `0x7ffff000`) : en-tête
+  reconstruit dans `src/wav.js`. Sortie : PCM 16 bits mono 22 050 Hz (44 Ko/s), soit ~113 s dans les 5 Mo de Gladys ;
+  au-delà, 11 025 Hz puis 8 bits (2 000 caractères à 80 mots/min ≈ 206 s, passés en 11 025 Hz).
+- Texte par stdin avec `-b 1` (UTF-8) ; sans `-m`, le SSML est lu comme du texte. Une voix inconnue fait sortir le
+  programme en code 1 (« voice does not exist »).
+- Un texte de seule ponctuation (« ... ») produit 0,3 s de silence : détecté (`isAudible`) et refusé comme vide.
+- Mesures (mini PC x86, conteneur verrouillé) : 2 000 caractères en ~0,2 s ; 17 Mo au repos, ~125 Mo de RSS pendant
+  des clips de 4,5 Mo (base64 compris), sous les 256 Mo.
+- Type `tts` : pas d'appareil (ni `gladys-rules.test.js` ni table des fonctionnalités), ni widget, ni déclencheur, ni
+  action de scène : l'écran d'une intégration `tts` n'a que Configuration, Supervision, Journaux.
+- Le test du vrai programme (`test/espeak.test.js`) est sauté hors de l'image ; le lancer dans l'image (README).

@@ -30,6 +30,12 @@ Gladys before reporting a problem.
 
 In scope: the code of this repository and the Docker image it publishes.
 
+The integration stores nothing in `/data`, holds no secret and opens no
+network connection other than the WebSocket to Gladys: the texts are spoken by
+the `espeak-ng` program inside the container, fed through stdin (no shell, no
+markup), one process at a time with a time and output budget.
+
 Out of scope: Gladys Assistant itself (see its
 [security policy](https://github.com/GladysAssistant/Gladys/security/policy)),
-and the third-party services and devices the integration talks to.
+and eSpeak NG itself (report its bugs to
+[the eSpeak NG project](https://github.com/espeak-ng/espeak-ng)).
