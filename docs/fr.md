@@ -1,67 +1,79 @@
-# Template de démonstration
+# eSpeak NG
 
-Ceci est la documentation utilisateur de l'intégration. Gladys ré-héberge ce
-fichier et affiche un lien **Documentation** permanent vers lui dans l'écran
-de configuration (dans la langue de l'utilisateur, avec l'anglais en repli) —
-c'est au moment de configurer que l'utilisateur en a le plus besoin. Gardez
-les courtes indications d'accueil dans les blocs `section` du `config_schema`
-du manifest ; mettez ici le pas-à-pas détaillé (captures d'écran, dépannage…).
+Donne à Gladys une **voix hors ligne** : les annonces des scènes sont
+prononcées par **eSpeak NG**, un moteur de synthèse vocale libre qui tourne
+dans cette intégration. Sans Internet, sans compte, sans serveur : la voix
+continue de parler quand Internet est coupé.
 
 ## Ce que vous obtenez
 
-Six appareils de démonstration apparaissent après l'installation : une
-station météo (vraies données Open-Meteo), un interrupteur, une lampe
-variable, une prise connectée avec mesure de puissance, un détecteur de
-mouvement et une caméra.
+- Une **voix pour Gladys** (Gladys 5.3.0 ou plus récent) : une fois
+  choisie, l'action de scène **Parler sur une enceinte** parle avec eSpeak NG
+  sur vos enceintes (Sonos, Google Cast, AirPlay…).
+- **38 langues et accents**, dans la langue de chaque utilisateur
+  automatiquement, avec un choix de timbres (masculin, féminin, chuchotement…),
+  de vitesse et de hauteur.
+- Rien ne sort de votre réseau : les textes sont prononcés sur la machine de
+  Gladys.
+
+## Avant de commencer : ce qu'est cette voix
+
+- eSpeak NG est un **synthétiseur à formants** : la voix est **robotique**,
+  loin des voix naturelles des services en ligne, mais claire, très légère et
+  toujours disponible. C'est une bonne voix de secours, ou une voix principale
+  pour qui ne veut rien laisser sortir de la maison.
+- Le moteur est inclus dans l'intégration (environ 20 Mo) : rien d'autre à
+  installer.
+- Sans lien avec le projet eSpeak NG.
+- Testée dans l'image de l'intégration, pas encore sur toutes les enceintes :
+  vos retours sont les bienvenus sur le forum.
 
 ## Configuration
 
-1. Ouvrez l'onglet **Configuration** de l'intégration.
-2. Renseignez la **latitude** et la **longitude** que la station météo de
-   démonstration doit observer (Paris par défaut), et choisissez votre unité
-   de température. L'**intervalle de rafraîchissement** règle la fréquence
-   de lecture de la station météo et de la puissance de la prise : toutes
-   les 5 minutes par défaut, toutes les minutes au plus.
-3. Enregistrez : les appareils apparaissent dans l'onglet **Découverte**,
-   prêts à être ajoutés.
+1. Installez l'intégration depuis le catalogue, puis ouvrez son onglet
+   **Configuration**.
+2. **Langue de la voix** : **Automatique** parle la langue de l'utilisateur à
+   qui Gladys répond, et celle du premier administrateur pour une annonce de
+   scène (français si Gladys ne la connaît pas). Ou imposez une langue ou un
+   accent (anglais du Royaume-Uni ou des États-Unis, français de France, de
+   Belgique ou de Suisse, espagnol d'Espagne ou d'Amérique latine, portugais du
+   Portugal ou du Brésil…).
+3. **Voix** : le timbre (par défaut, masculine 1 à 4, féminine 1 à 4, Klatt,
+   chuchotement, rauque). La prononciation reste celle de la langue.
+4. **Vitesse** : de 80 à 450 mots par minute, 160 par défaut.
+5. **Hauteur** : de 0 (grave) à 99 (aigu), 50 par défaut.
+6. Enregistrez, puis appuyez sur **Tester la voix** : elle prononce une phrase
+   de test et affiche la durée du clip.
+7. Ouvrez **Intégrations → Intelligence Artificielle** et choisissez
+   **eSpeak NG** dans la carte **Voix**.
 
-Le réglage **Préférer la connexion locale** pilote la prise de
-démonstration : elle affiche en badge le canal réellement utilisé (local ou
-cloud), avec un point orange quand elle fonctionne en mode dégradé (local
-refusé, bascule cloud).
+## Utilisation dans les scènes
 
-## Actions
+Ajoutez une action **Parler sur une enceinte** à une scène, choisissez une
+enceinte et tapez le texte. Gladys demande le clip à cette intégration, puis le
+sert à l'enceinte sur votre réseau local.
 
-- **Tester le fournisseur météo** — effectue une requête en direct vers
-  Open-Meteo et affiche la température et l'humidité actuelles sous le
-  bouton.
-- **Identifier un appareil** — choisissez un de vos appareils dans la liste
-  et il se signale (la lampe de démonstration « clignote » dans les logs).
+L'assistant vocal de Gladys reste en texte avec une intégration de voix : sa
+page est en HTTPS, et le clip est servi sur le réseau local en HTTP, ce que le
+navigateur bloque. C'est une limite de Gladys, la même pour toutes les
+intégrations de voix.
 
-## Scènes
+## Limites
 
-L'intégration ajoute ses propres cartes à l'éditeur de scènes (Gladys 5.1
-ou plus récent), dans la catégorie **Intégrations** :
-
-- **Mouvement détecté** (déclencheur) — lance la scène quand un détecteur
-  de démonstration voit bouger quelque chose. Choisissez éventuellement le
-  détecteur et ce qui a bougé (personne, animal) ; laissés vides, toute
-  détection correspond. Les actions suivantes peuvent lire ce qui a bougé
-  avec `{{triggerEvent.data.target}}`.
-- **Identifier un appareil** (action) — fait se signaler l'appareil choisi.
-  Elle indique si l'appareil a pu se signaler, pour que les actions
-  suivantes puissent en dépendre.
-
-## Tableau de bord
-
-Ajoutez le widget **État de la démo** à un tableau de bord : il affiche en
-direct la température de la station météo et la puissance de la prise du
-bureau, la connexion utilisée par la prise (en orange si dégradée) et la
-position observée. Son bouton **Identifier la lampe** fait se signaler la
-lampe de démonstration.
+- Les clips sont des fichiers **WAV** (22 050 Hz, 16 bits, mono), 44 Ko par
+  seconde. Gladys en accepte 5 Mo au plus : un très long texte lu lentement
+  (plus de 2 minutes de parole environ) est envoyé en 11 025 Hz, puis en
+  8 bits, un peu plus sourd. Les 2 000 caractères que Gladys envoie au plus
+  sont prononcés en 0,2 s environ sur un mini PC.
+- Le japonais et quelques autres langues ne sont pas proposés : eSpeak NG les
+  lit mal.
+- Une annonce sur plusieurs enceintes n'est synthétisée qu'une fois.
 
 ## Dépannage
 
-L'intégration journalise tout ce qu'elle fait : consultez les logs de
-l'intégration depuis l'interface Gladys (ou `docker logs` sur l'hôte) avec
-`LOG_LEVEL=debug` pour le détail complet.
+- La **Supervision** indique si le moteur parle, avec la voix utilisée.
+- Une annonce ratée est écrite dans les **journaux** de l'intégration, et
+  l'action de scène échoue dans le journal des scènes.
+- « Il n'y a rien à dire dans le texte » : le texte est vide, ou ne contient
+  que de la ponctuation.
+- Lancez le conteneur avec `LOG_LEVEL=debug` pour voir chaque clip produit.

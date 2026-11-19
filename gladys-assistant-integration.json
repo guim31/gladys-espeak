@@ -1,177 +1,614 @@
 {
   "manifest_version": 1,
-  "type": "device",
-  "name": "Demo Devices Template",
+  "type": "tts",
+  "name": "eSpeak NG",
   "description": {
-    "en": "Starter template showing sensors, a switch, a dimmable light and a smart plug.",
-    "fr": "Template de démarrage : capteurs, interrupteur, lampe variable et prise connectée."
+    "en": "An offline voice for Gladys announcements: eSpeak NG runs on your machine, no Internet, no account.",
+    "fr": "Une voix hors ligne pour les annonces de Gladys : eSpeak NG, sur votre machine, sans Internet.",
+    "de": "Eine Offline-Stimme für Ansagen von Gladys: eSpeak NG läuft lokal, ohne Internet, ohne Konto.",
+    "es": "Una voz sin conexión para los anuncios de Gladys: eSpeak NG en su máquina, sin Internet."
   },
   "version": "1.0.0",
-  "docker_image": "ghcr.io/gladysassistant/integration-template-js:1.0.0",
-  "gladys_version": ">=5.1.0",
-  "cover_image": "https://raw.githubusercontent.com/GladysAssistant/integration-template-js/master/cover.png",
-  "categories": ["lighting", "security", "environment"],
-  "transports": ["local", "cloud"],
+  "docker_image": "ghcr.io/guim31/gladys-espeak:1.0.0",
+  "gladys_version": ">=5.3.0",
+  "cover_image": "https://raw.githubusercontent.com/guim31/gladys-espeak/main/cover.png",
+  "categories": ["assistants"],
+  "keywords": [
+    "espeak",
+    "espeak-ng",
+    "tts",
+    "text-to-speech",
+    "synthèse vocale",
+    "voix",
+    "voice",
+    "offline",
+    "hors ligne"
+  ],
+  "transports": ["local"],
   "config_schema": [
     {
       "key": "intro",
       "type": "section",
-      "label": { "en": "Getting started", "fr": "Pour commencer" },
+      "label": {
+        "en": "An offline voice, always available",
+        "fr": "Une voix hors ligne, toujours disponible",
+        "de": "Eine Offline-Stimme, immer verfügbar",
+        "es": "Una voz sin conexión, siempre disponible"
+      },
       "description": {
-        "en": "The demo weather station reads real data from the free Open-Meteo API: pick the coordinates to observe. No account, no API key.",
-        "fr": "La station météo de démonstration lit de vraies données via l'API gratuite Open-Meteo : choisissez les coordonnées à observer. Pas de compte, pas de clé d'API."
+        "en": "eSpeak NG runs inside this integration: no Internet, no account, nothing leaves your network. The voice is robotic but clear, and keeps speaking when the Internet is down. Then select this voice on the Artificial Intelligence page.",
+        "fr": "eSpeak NG tourne dans cette intégration : sans Internet ni compte, rien ne sort de votre réseau. La voix est robotique mais claire, et parle encore quand Internet est coupé. Choisissez ensuite cette voix sur la page Intelligence Artificielle.",
+        "de": "eSpeak NG läuft in dieser Integration: ohne Internet und Konto, nichts verlässt dein Netzwerk. Die Stimme klingt robotisch, aber deutlich, und spricht auch ohne Internet. Wähle sie dann auf der Seite Künstliche Intelligenz.",
+        "es": "eSpeak NG funciona dentro de esta integración: sin Internet ni cuenta, nada sale de su red. La voz es robótica pero clara, y sigue hablando sin Internet. Después, elija esta voz en la página Inteligencia artificial."
       },
       "links": [
         {
-          "url": "https://open-meteo.com/en/docs",
-          "label": { "en": "Open-Meteo documentation", "fr": "Documentation Open-Meteo" }
+          "url": "https://github.com/espeak-ng/espeak-ng",
+          "label": {
+            "en": "eSpeak NG project",
+            "fr": "Projet eSpeak NG",
+            "de": "Projekt eSpeak NG",
+            "es": "Proyecto eSpeak NG"
+          }
         }
       ]
     },
     {
-      "key": "latitude",
-      "type": "number",
-      "label": { "en": "Latitude", "fr": "Latitude" },
-      "description": {
-        "en": "Latitude used for the demo weather sensor.",
-        "fr": "Latitude utilisée par le capteur météo de démonstration."
-      },
-      "placeholder": { "en": "e.g. 48.8566", "fr": "ex. 48.8566" },
-      "required": true,
-      "default": 48.8566,
-      "min": -90,
-      "max": 90
-    },
-    {
-      "key": "longitude",
-      "type": "number",
-      "label": { "en": "Longitude", "fr": "Longitude" },
-      "description": {
-        "en": "Longitude used for the demo weather sensor.",
-        "fr": "Longitude utilisée par le capteur météo de démonstration."
-      },
-      "placeholder": { "en": "e.g. 2.3522", "fr": "ex. 2.3522" },
-      "required": true,
-      "default": 2.3522,
-      "min": -180,
-      "max": 180
-    },
-    {
-      "key": "unit",
+      "key": "language",
       "type": "select",
-      "label": { "en": "Temperature unit", "fr": "Unité de température" },
+      "label": {
+        "en": "Language of the voice",
+        "fr": "Langue de la voix",
+        "de": "Sprache der Stimme",
+        "es": "Idioma de la voz"
+      },
+      "description": {
+        "en": "Automatic: the language of the user Gladys answers, or of the first administrator for an announcement (French when unknown).",
+        "fr": "Automatique : la langue de l'utilisateur à qui Gladys répond, ou du premier administrateur pour une annonce (français si inconnue).",
+        "de": "Automatisch: die Sprache des Benutzers, dem Gladys antwortet, bei einer Ansage die des ersten Administrators (sonst Französisch).",
+        "es": "Automático: el idioma del usuario al que responde Gladys, o del primer administrador para un anuncio (francés si se desconoce)."
+      },
       "required": false,
-      "default": "celsius",
+      "default": "auto",
       "options": [
-        { "value": "celsius", "label": { "en": "Celsius", "fr": "Celsius" } },
-        { "value": "fahrenheit", "label": { "en": "Fahrenheit", "fr": "Fahrenheit" } }
+        {
+          "value": "auto",
+          "label": {
+            "en": "Automatic",
+            "fr": "Automatique",
+            "de": "Automatisch",
+            "es": "Automático"
+          }
+        },
+        {
+          "value": "ar",
+          "label": {
+            "en": "العربية",
+            "fr": "العربية",
+            "de": "العربية",
+            "es": "العربية"
+          }
+        },
+        {
+          "value": "bg",
+          "label": {
+            "en": "Български",
+            "fr": "Български",
+            "de": "Български",
+            "es": "Български"
+          }
+        },
+        {
+          "value": "ca",
+          "label": {
+            "en": "Català",
+            "fr": "Català",
+            "de": "Català",
+            "es": "Català"
+          }
+        },
+        {
+          "value": "cmn",
+          "label": {
+            "en": "中文（普通话）",
+            "fr": "中文（普通话）",
+            "de": "中文（普通话）",
+            "es": "中文（普通话）"
+          }
+        },
+        {
+          "value": "cs",
+          "label": {
+            "en": "Čeština",
+            "fr": "Čeština",
+            "de": "Čeština",
+            "es": "Čeština"
+          }
+        },
+        {
+          "value": "da",
+          "label": {
+            "en": "Dansk",
+            "fr": "Dansk",
+            "de": "Dansk",
+            "es": "Dansk"
+          }
+        },
+        {
+          "value": "de",
+          "label": {
+            "en": "Deutsch",
+            "fr": "Deutsch",
+            "de": "Deutsch",
+            "es": "Deutsch"
+          }
+        },
+        {
+          "value": "el",
+          "label": {
+            "en": "Ελληνικά",
+            "fr": "Ελληνικά",
+            "de": "Ελληνικά",
+            "es": "Ελληνικά"
+          }
+        },
+        {
+          "value": "en-gb",
+          "label": {
+            "en": "English (United Kingdom)",
+            "fr": "English (United Kingdom)",
+            "de": "English (United Kingdom)",
+            "es": "English (United Kingdom)"
+          }
+        },
+        {
+          "value": "en-us",
+          "label": {
+            "en": "English (United States)",
+            "fr": "English (United States)",
+            "de": "English (United States)",
+            "es": "English (United States)"
+          }
+        },
+        {
+          "value": "es",
+          "label": {
+            "en": "Español (España)",
+            "fr": "Español (España)",
+            "de": "Español (España)",
+            "es": "Español (España)"
+          }
+        },
+        {
+          "value": "es-419",
+          "label": {
+            "en": "Español (Latinoamérica)",
+            "fr": "Español (Latinoamérica)",
+            "de": "Español (Latinoamérica)",
+            "es": "Español (Latinoamérica)"
+          }
+        },
+        {
+          "value": "eu",
+          "label": {
+            "en": "Euskara",
+            "fr": "Euskara",
+            "de": "Euskara",
+            "es": "Euskara"
+          }
+        },
+        {
+          "value": "fi",
+          "label": {
+            "en": "Suomi",
+            "fr": "Suomi",
+            "de": "Suomi",
+            "es": "Suomi"
+          }
+        },
+        {
+          "value": "fr-fr",
+          "label": {
+            "en": "Français (France)",
+            "fr": "Français (France)",
+            "de": "Français (France)",
+            "es": "Français (France)"
+          }
+        },
+        {
+          "value": "fr-be",
+          "label": {
+            "en": "Français (Belgique)",
+            "fr": "Français (Belgique)",
+            "de": "Français (Belgique)",
+            "es": "Français (Belgique)"
+          }
+        },
+        {
+          "value": "fr-ch",
+          "label": {
+            "en": "Français (Suisse)",
+            "fr": "Français (Suisse)",
+            "de": "Français (Suisse)",
+            "es": "Français (Suisse)"
+          }
+        },
+        {
+          "value": "he",
+          "label": {
+            "en": "עברית",
+            "fr": "עברית",
+            "de": "עברית",
+            "es": "עברית"
+          }
+        },
+        {
+          "value": "hi",
+          "label": {
+            "en": "हिन्दी",
+            "fr": "हिन्दी",
+            "de": "हिन्दी",
+            "es": "हिन्दी"
+          }
+        },
+        {
+          "value": "hr",
+          "label": {
+            "en": "Hrvatski",
+            "fr": "Hrvatski",
+            "de": "Hrvatski",
+            "es": "Hrvatski"
+          }
+        },
+        {
+          "value": "hu",
+          "label": {
+            "en": "Magyar",
+            "fr": "Magyar",
+            "de": "Magyar",
+            "es": "Magyar"
+          }
+        },
+        {
+          "value": "id",
+          "label": {
+            "en": "Bahasa Indonesia",
+            "fr": "Bahasa Indonesia",
+            "de": "Bahasa Indonesia",
+            "es": "Bahasa Indonesia"
+          }
+        },
+        {
+          "value": "it",
+          "label": {
+            "en": "Italiano",
+            "fr": "Italiano",
+            "de": "Italiano",
+            "es": "Italiano"
+          }
+        },
+        {
+          "value": "ko",
+          "label": {
+            "en": "한국어",
+            "fr": "한국어",
+            "de": "한국어",
+            "es": "한국어"
+          }
+        },
+        {
+          "value": "lb",
+          "label": {
+            "en": "Lëtzebuergesch",
+            "fr": "Lëtzebuergesch",
+            "de": "Lëtzebuergesch",
+            "es": "Lëtzebuergesch"
+          }
+        },
+        {
+          "value": "nb",
+          "label": {
+            "en": "Norsk bokmål",
+            "fr": "Norsk bokmål",
+            "de": "Norsk bokmål",
+            "es": "Norsk bokmål"
+          }
+        },
+        {
+          "value": "nl",
+          "label": {
+            "en": "Nederlands",
+            "fr": "Nederlands",
+            "de": "Nederlands",
+            "es": "Nederlands"
+          }
+        },
+        {
+          "value": "pl",
+          "label": {
+            "en": "Polski",
+            "fr": "Polski",
+            "de": "Polski",
+            "es": "Polski"
+          }
+        },
+        {
+          "value": "pt",
+          "label": {
+            "en": "Português (Portugal)",
+            "fr": "Português (Portugal)",
+            "de": "Português (Portugal)",
+            "es": "Português (Portugal)"
+          }
+        },
+        {
+          "value": "pt-br",
+          "label": {
+            "en": "Português (Brasil)",
+            "fr": "Português (Brasil)",
+            "de": "Português (Brasil)",
+            "es": "Português (Brasil)"
+          }
+        },
+        {
+          "value": "ro",
+          "label": {
+            "en": "Română",
+            "fr": "Română",
+            "de": "Română",
+            "es": "Română"
+          }
+        },
+        {
+          "value": "ru",
+          "label": {
+            "en": "Русский",
+            "fr": "Русский",
+            "de": "Русский",
+            "es": "Русский"
+          }
+        },
+        {
+          "value": "sk",
+          "label": {
+            "en": "Slovenčina",
+            "fr": "Slovenčina",
+            "de": "Slovenčina",
+            "es": "Slovenčina"
+          }
+        },
+        {
+          "value": "sv",
+          "label": {
+            "en": "Svenska",
+            "fr": "Svenska",
+            "de": "Svenska",
+            "es": "Svenska"
+          }
+        },
+        {
+          "value": "th",
+          "label": {
+            "en": "ไทย",
+            "fr": "ไทย",
+            "de": "ไทย",
+            "es": "ไทย"
+          }
+        },
+        {
+          "value": "tr",
+          "label": {
+            "en": "Türkçe",
+            "fr": "Türkçe",
+            "de": "Türkçe",
+            "es": "Türkçe"
+          }
+        },
+        {
+          "value": "uk",
+          "label": {
+            "en": "Українська",
+            "fr": "Українська",
+            "de": "Українська",
+            "es": "Українська"
+          }
+        },
+        {
+          "value": "vi",
+          "label": {
+            "en": "Tiếng Việt",
+            "fr": "Tiếng Việt",
+            "de": "Tiếng Việt",
+            "es": "Tiếng Việt"
+          }
+        }
       ]
     },
     {
-      "key": "poll_frequency",
-      "type": "number",
-      "label": { "en": "Refresh interval (s)", "fr": "Intervalle de rafraîchissement (s)" },
+      "key": "variant",
+      "type": "select",
+      "label": {
+        "en": "Voice",
+        "fr": "Voix",
+        "de": "Stimme",
+        "es": "Voz"
+      },
       "description": {
-        "en": "How often sensors are polled, in seconds (one minute minimum).",
-        "fr": "Fréquence d'interrogation des capteurs, en secondes (une minute minimum)."
+        "en": "Timbre of the voice; the pronunciation stays that of the language.",
+        "fr": "Timbre de la voix ; la prononciation reste celle de la langue.",
+        "de": "Klangfarbe der Stimme; die Aussprache bleibt die der Sprache.",
+        "es": "Timbre de la voz; la pronunciación sigue siendo la del idioma."
       },
       "required": false,
-      "default": 300,
-      "min": 60,
-      "max": 3600
+      "default": "default",
+      "options": [
+        {
+          "value": "default",
+          "label": {
+            "en": "Default",
+            "fr": "Par défaut",
+            "de": "Standard",
+            "es": "Predeterminada"
+          }
+        },
+        {
+          "value": "m1",
+          "label": {
+            "en": "Male 1",
+            "fr": "Masculine 1",
+            "de": "Männlich 1",
+            "es": "Masculina 1"
+          }
+        },
+        {
+          "value": "m2",
+          "label": {
+            "en": "Male 2",
+            "fr": "Masculine 2",
+            "de": "Männlich 2",
+            "es": "Masculina 2"
+          }
+        },
+        {
+          "value": "m3",
+          "label": {
+            "en": "Male 3",
+            "fr": "Masculine 3",
+            "de": "Männlich 3",
+            "es": "Masculina 3"
+          }
+        },
+        {
+          "value": "m4",
+          "label": {
+            "en": "Male 4",
+            "fr": "Masculine 4",
+            "de": "Männlich 4",
+            "es": "Masculina 4"
+          }
+        },
+        {
+          "value": "f1",
+          "label": {
+            "en": "Female 1",
+            "fr": "Féminine 1",
+            "de": "Weiblich 1",
+            "es": "Femenina 1"
+          }
+        },
+        {
+          "value": "f2",
+          "label": {
+            "en": "Female 2",
+            "fr": "Féminine 2",
+            "de": "Weiblich 2",
+            "es": "Femenina 2"
+          }
+        },
+        {
+          "value": "f3",
+          "label": {
+            "en": "Female 3",
+            "fr": "Féminine 3",
+            "de": "Weiblich 3",
+            "es": "Femenina 3"
+          }
+        },
+        {
+          "value": "f4",
+          "label": {
+            "en": "Female 4",
+            "fr": "Féminine 4",
+            "de": "Weiblich 4",
+            "es": "Femenina 4"
+          }
+        },
+        {
+          "value": "klatt",
+          "label": {
+            "en": "Klatt (smoother, synthetic)",
+            "fr": "Klatt (plus douce, synthétique)",
+            "de": "Klatt (weicher, synthetisch)",
+            "es": "Klatt (más suave, sintética)"
+          }
+        },
+        {
+          "value": "whisper",
+          "label": {
+            "en": "Whisper",
+            "fr": "Chuchotement",
+            "de": "Flüstern",
+            "es": "Susurro"
+          }
+        },
+        {
+          "value": "croak",
+          "label": {
+            "en": "Croaky",
+            "fr": "Rauque",
+            "de": "Krächzend",
+            "es": "Ronca"
+          }
+        }
+      ]
+    },
+    {
+      "key": "speed",
+      "type": "number",
+      "label": {
+        "en": "Speed (words per minute)",
+        "fr": "Vitesse (mots par minute)",
+        "de": "Geschwindigkeit (Wörter pro Minute)",
+        "es": "Velocidad (palabras por minuto)"
+      },
+      "description": {
+        "en": "From 80 to 450. 160 is calm and clear; eSpeak NG reads at 175 by default.",
+        "fr": "De 80 à 450. 160 est posé et clair ; eSpeak NG lit à 175 par défaut.",
+        "de": "Von 80 bis 450. 160 ist ruhig und deutlich; eSpeak NG liest standardmäßig mit 175.",
+        "es": "De 80 a 450. 160 es pausado y claro; eSpeak NG lee a 175 por defecto."
+      },
+      "required": false,
+      "default": 160,
+      "min": 80,
+      "max": 450
+    },
+    {
+      "key": "pitch",
+      "type": "number",
+      "label": {
+        "en": "Pitch",
+        "fr": "Hauteur",
+        "de": "Tonhöhe",
+        "es": "Tono"
+      },
+      "description": {
+        "en": "From 0 (low) to 99 (high), 50 by default.",
+        "fr": "De 0 (grave) à 99 (aigu), 50 par défaut.",
+        "de": "Von 0 (tief) bis 99 (hoch), standardmäßig 50.",
+        "es": "De 0 (grave) a 99 (agudo), 50 por defecto."
+      },
+      "required": false,
+      "default": 50,
+      "min": 0,
+      "max": 99
     }
   ],
   "actions": [
     {
-      "key": "test_weather",
-      "label": { "en": "Test the weather provider", "fr": "Tester le fournisseur météo" },
+      "key": "test_voice",
+      "label": {
+        "en": "Test the voice",
+        "fr": "Tester la voix",
+        "de": "Stimme testen",
+        "es": "Probar la voz"
+      },
+      "description": {
+        "en": "Speaks a test sentence with the saved settings and shows the result (save first).",
+        "fr": "Prononce une phrase de test avec les réglages enregistrés et affiche le résultat (enregistrez d'abord).",
+        "de": "Spricht einen Testsatz mit den gespeicherten Einstellungen und zeigt das Ergebnis (zuerst speichern).",
+        "es": "Pronuncia una frase de prueba con los ajustes guardados y muestra el resultado (guarde primero)."
+      },
       "timeout_seconds": 30
-    },
-    {
-      "key": "identify",
-      "label": { "en": "Identify a device", "fr": "Identifier un appareil" },
-      "fields": [
-        {
-          "key": "device",
-          "type": "select",
-          "source": "devices",
-          "label": { "en": "Device", "fr": "Appareil" },
-          "required": true
-        }
-      ]
-    }
-  ],
-  "scene_triggers": [
-    {
-      "key": "motion_detected",
-      "label": { "en": "Motion detected", "fr": "Mouvement détecté" },
-      "description": {
-        "en": "A demo motion sensor saw a person or an animal move.",
-        "fr": "Un détecteur de démonstration a vu bouger une personne ou un animal."
-      },
-      "fields": [
-        {
-          "key": "device",
-          "type": "select",
-          "source": "devices",
-          "label": { "en": "Sensor", "fr": "Détecteur" }
-        },
-        {
-          "key": "target",
-          "type": "multi_select",
-          "label": { "en": "What moved", "fr": "Ce qui a bougé" },
-          "options": [
-            { "value": "person", "label": { "en": "Person", "fr": "Personne" } },
-            { "value": "animal", "label": { "en": "Animal", "fr": "Animal" } }
-          ]
-        }
-      ],
-      "variables": [
-        {
-          "key": "target",
-          "type": "string",
-          "label": { "en": "What moved", "fr": "Ce qui a bougé" }
-        }
-      ]
-    }
-  ],
-  "scene_actions": [
-    {
-      "key": "identify_device",
-      "label": { "en": "Identify a device", "fr": "Identifier un appareil" },
-      "description": {
-        "en": "Make a device signal itself (the demo light blinks).",
-        "fr": "Fait se signaler un appareil (la lampe de démonstration clignote)."
-      },
-      "timeout_seconds": 15,
-      "fields": [
-        {
-          "key": "device",
-          "type": "select",
-          "source": "devices",
-          "label": { "en": "Device", "fr": "Appareil" },
-          "required": true
-        }
-      ],
-      "outputs": [
-        {
-          "key": "signalled",
-          "type": "boolean",
-          "label": { "en": "Device signalled", "fr": "Appareil signalé" }
-        }
-      ]
-    }
-  ],
-  "widgets": [
-    {
-      "key": "demo_status",
-      "label": { "en": "Demo status", "fr": "État de la démo" },
-      "description": {
-        "en": "Live temperature and plug power, plug connection and observed location.",
-        "fr": "Température et puissance en direct, connexion de la prise, position observée."
-      },
-      "icon": "activity",
-      "action_timeout_seconds": 15
     }
   ]
 }
