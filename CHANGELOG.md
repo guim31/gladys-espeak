@@ -10,6 +10,8 @@ the notes of the version's GitHub Release.
 
 ## [Unreleased]
 
+## [1.0.0] - 2026-11-19
+
 ### Added
 
 - An offline voice for Gladys 5.3.0 or later: eSpeak NG, included in the
@@ -20,4 +22,5 @@ the notes of the version's GitHub Release.
 - A **Test the voice** button, and the state of the engine in Supervision.
 - Documentation in English, French, German and Spanish.
 
-[Unreleased]: https://github.com/guim31/gladys-espeak/commits/main
+[Unreleased]: https://github.com/guim31/gladys-espeak/compare/v1.0.0...HEAD
+[1.0.0]: https://github.com/guim31/gladys-espeak/releases/tag/v1.0.0
